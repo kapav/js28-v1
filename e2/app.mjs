@@ -1,29 +1,47 @@
-//const express = require('express');
 import path from 'path';
 import logger from 'morgan';
 import favicon from 'serve-favicon';
 import express from 'express';
+import connect from 'mongodb';
+
 const __dirname = path.dirname(new URL(import.meta.url).pathname).slice(3);
 const app = express();
-const router = express.Router();
+const mongoClient = connect.MongoClient;
 
-var mfAllVerbsRoutes = function(req, res, next) {
+const mfAllVerbsRoutes = function(req, res, next) {
   console.log('Промежуточный уровень. Все маршруты и глаголы.');
   next(); // Вызывает next() чтобы Express вызвал следующую функцию промежуточного уровня в конвейере.
 }
 
-var mfSpecificRoute = function(req, res, next) {
+const mfSpecificRoute = function(req, res, next) {
   console.log('Промежуточный уровень. Заданный маршрут.');
   next(); // Вызывает next() чтобы Express вызвал следующую функцию промежуточного уровня в конвейере.
 }
 
-var mfSpecificVerbRoute = function(req, res, next) {
+const mfSpecificVerbRoute = function(req, res, next) {
   console.log('Промежуточный уровень. Заданный HTTP-глагол и маршрут.');
   next(); // Вызывает next() чтобы Express вызвал следующую функцию промежуточного уровня в конвейере.
 }
 
+mongoClient.connect('mongodb://localhost:27017', {
+  useUnifiedTopology: true
+}, function(err, client) {
+  if (err) { throw err; }
+  const db = client.db('animals');
+  db.collection('mammals').find().toArray(function(err, result) {
+    if (err) { throw err; }
+    console.log(result);
+  })
+});
+
+// Задаёт папку для шаблонов, './views' по умолчанию
+app.set('views', path.join(__dirname, 'views'));
+// Задаёт шаблонизатор
+app.set('view engine', 'pug');
+
 app.use(favicon(path.join(__dirname, '/favicon.ico')));
 app.use(logger('dev'));
+app.use('/css', express.static('public'));
 
 // Функция добавлена с помощью use() для всех маршрутов и глаголов
 app.use(mfAllVerbsRoutes);
@@ -35,7 +53,7 @@ app.use('/someroute', mfSpecificRoute);
 app.get('/', mfSpecificVerbRoute);
 
 app.get('/', function(req, res) {
-  res.send('Здравствуй, Вселенная!');
+  res.render('index', { title: 'js28-v1-e2', message: 'Здравствуй, Вселенная!' });
 });
 
 app.get('/someroute', function(req, res) {
