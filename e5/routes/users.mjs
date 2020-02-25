@@ -1,6 +1,5 @@
 import express from 'express';
 
-const app = express()
 const router = express.Router();
 
 /* GET users listing. */
@@ -10,12 +9,12 @@ router.get('/', function(req, res, next) {
 
 /* Маршрут для дополнительного сообщения */
 router.get('/cool', function(req, res, next) {
-  res.render('index', { title: 'Вид дополнительного сообщения' })
+  res.render('index', { title: 'Страница с примером дополнительного сообщения' })
 })
 
 /* Маршрут примера 5.2. «Основы шаблонов» */
 router.get('/templatePrimer', function(req, res, next) {
-  res.render('templatePrimer', { title: 'Вид сообщения для основ шаблонов' })
+  res.render('templatePrimer', { title: 'Страница с примерами для основ шаблонов' })
 })
 
 export default router;
