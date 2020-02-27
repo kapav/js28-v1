@@ -3,7 +3,7 @@ import express from 'express'
 // Требующиеся модули контроллеров.
 import * as bookController from '../controllers/bookController.mjs'
 import * as authorController from '../controllers/authorController.mjs'
-import * as genreController from '../controllers /genreController.mjs'
+import * as genreController from '../controllers/genreController.mjs'
 import * as bookinstanceController from '../controllers/bookinstanceController.mjs'
 
 const router = express.Router()
