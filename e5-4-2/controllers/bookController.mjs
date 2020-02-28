@@ -30,8 +30,15 @@ export function index(req, res) {
 };
 
 // Показать список всех книг.
-export function bookList(req, res) {
-    res.send('Не реализовано: Список книг');
+export function bookList(req, res, next) {
+    book.find({}, 'title author')
+        .populate({path: 'author'})
+        .exec(function(err, bookList) {
+            if (err) { return next(err) }
+            console.log('bookList:', bookList)
+            // Успешное завершение, поэтому нужно отрисовать
+            res.render('bookList', { title: 'Список книг'})
+        })
 };
 
 // Показать подробную страницу для заданной книги.
