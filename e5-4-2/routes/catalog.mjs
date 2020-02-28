@@ -10,8 +10,8 @@ const router = express.Router()
 
 /// BOOK ROUTES МАРШРУТЫ КНИГ///
 
-// GET catalog home page. 
-router.get('/', bookController.index);
+// GET catalog home page.
+router.get('/', bookController.index); // Данная инструкция на самом деле проецирует на путь «/catalog/», потому что мы импортируем из index'а.mjs маршрут с префиксом «/catalog»
 
 // GET request for creating a Book. NOTE This must come before routes that display Book (uses id).
 // GET запрос для создания книги. Должен появиться до маршрута, показывающего книгу (использует id).

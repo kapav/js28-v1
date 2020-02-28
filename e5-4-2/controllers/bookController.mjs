@@ -1,8 +1,32 @@
 import book from '../models/book.mjs'
+import author from '../models/author.mjs'
+import genre from '../models/genre.mjs'
+import bookinstance from '../models/bookinstance.mjs'
+
+import async from 'async'
 
 // Страница приветствия.
 export function index(req, res) {
-    res.send('Не реализовано: Домашняя страница сайта');
+    async.parallel({
+        bookCount: function(callback) {
+            book.countDocuments({}, callback) // Нужно передать пустой объект как условие выборки для извлечения всех документов из данной коллекции
+            // countDocuments не работает, работает только просто count
+        },
+        bookinstanceCount: function(callback) {
+            bookinstance.countDocuments({}, callback)
+        },
+        bookinstanceAvailableCount: function(callback) {
+            bookinstance.countDocuments({status: 'Доступен'}, callback)
+        },
+        authorCount: function(callback) {
+            author.countDocuments({}, callback)
+        },
+        genreCount: function(callback) {
+            genre.countDocuments({}, callback)
+        }
+    }, function(err, results) {
+        res.render('index', { title: 'Домашняя страница местной библиотеки', error: err, data: results })
+    })
 };
 
 // Показать список всех книг.
