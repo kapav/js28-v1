@@ -35,9 +35,8 @@ export function bookList(req, res, next) {
         .populate({path: 'author'})
         .exec(function(err, bookList) {
             if (err) { return next(err) }
-            console.log('bookList:', bookList)
             // Успешное завершение, поэтому нужно отрисовать
-            res.render('bookList', { title: 'Список книг'})
+            res.render('bookList', { title: 'Список книг', bookList})
         })
 };
 

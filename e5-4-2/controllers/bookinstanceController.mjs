@@ -1,8 +1,14 @@
 import bookinstance from '../models/bookinstance.mjs'
 
 // Показать список всех экземпляров книг.
-export function bookinstanceList(req, res) {
-    res.send('Не реализовано: Список экземпляров книг');
+export function bookinstanceList(req, res, next) {
+    bookinstance.find()
+        .populate('book')
+        .exec(function(err, bookinstanceList) {
+            if (err) { return next(err) }
+            // Успешное завершение, поэтому нужно отрисовать
+            res.render('bookinstanceList', { title: 'Список экземпляров книг', bookinstanceList })
+        })
 };
 
 // Показать подробную страницу для заданного экземпляра книги.
