@@ -1,4 +1,7 @@
 import mongoose from 'mongoose'
+import moment from 'moment'
+
+moment.locale('ru') // Переключение на русский язык
 
 const Schema = mongoose.Schema
 
@@ -14,6 +17,13 @@ BookinstanceSchema
   .virtual('url')
   .get(function() {
     return '/catalog/bookinstance/' + this._id
+  })
+
+// Виртуальное свойство - отформатированная дата
+BookinstanceSchema
+  .virtual('dueBackFormatted')
+  .get(function() {
+    return moment(this.dueBack).format('Do MMMM YYYY')
   })
 
 // Экспортирование модели

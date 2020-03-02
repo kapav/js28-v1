@@ -15,7 +15,7 @@ block content
           else
             span.text-warning #{' ' + val.status}
           if val.status!=='Доступен'
-            span #{' '}(До: #{val.dueBack})
+            span #{' '}(До: #{val.dueBackFormatted}) 
       else
         li Экземпляры книг отсутствуют.
   else
