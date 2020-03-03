@@ -56,7 +56,7 @@ export function bookDetail(req, res, next) {
     }, function(err, results) {
         if (err) { return next(err) }
         if (results.book === null) { // Результаты отсутствуют.
-            var err = new Error('Книга не найдена')
+            const err = new Error('Книга не найдена')
             err.status = 404
             return next(err)
         }

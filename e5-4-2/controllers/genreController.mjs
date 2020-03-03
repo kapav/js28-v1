@@ -28,7 +28,7 @@ export function genreDetail(req, res, next) {
     }, function(err, results) {
         if (err) { return next(err) }
         if (results.genre === null) { // Результаты отсутствуют.
-            var err = new Error('Жанр не найден')
+            const err = new Error('Жанр не найден')
             err.status = 404
             return next(err)
         }

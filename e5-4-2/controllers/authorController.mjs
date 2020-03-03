@@ -1,4 +1,7 @@
+import async from 'async'
+
 import author from '../models/author.mjs'
+import book from '../models/book.mjs'
 
 // Показать список всех авторов.
 export function authorList(req, res, next) {
@@ -12,8 +15,26 @@ export function authorList(req, res, next) {
 };
 
 // Показать подробную страницу для заданного автора.
-export function authorDetail(req, res) {
-    res.send('Не реализовано: Страница подробностей для автора: ' + req.params.id);
+export function authorDetail(req, res, next) {
+    async.parallel({
+        author: function(callback) {
+            author.findById(req.params.id)
+                .exec(callback)
+        },
+        authorBooks: function(callback) {
+            book.find({ 'author': req.params.id }, 'title summary')
+                .exec(callback)
+        }
+    }, function(err, results) {
+        if (err) { return next(err) } // Ошибка использования API
+        if (results.author === null) { // Результаты отсутствуют.
+            const err = new Error('Автор не найден')
+            err.status = 404
+            return next(err)
+        }
+        // Успешное завершение, поэтому нужно отрисовать
+        res.render('authorDetail', { title: 'Информация об авторе', author: results.author, authorBooks: results.authorBooks })
+    })
 };
 
 // Показать форму создания автора по запросу GET.
