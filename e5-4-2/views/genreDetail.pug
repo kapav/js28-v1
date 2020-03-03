@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  h1 Жанр: #{genre.name}
+
+  div(style='margin-left:20px;margin-top:20px')
+    h4 Книги
+    dl
+      each book in genreBooks
+        dt
+          a(href=book.url) #{book.title}
+        dd #{book.summary}
+      else
+        p Книги данного жанра отсутствуют.

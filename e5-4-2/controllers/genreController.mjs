@@ -1,7 +1,10 @@
+import async from 'async'
+
 import genre from '../models/genre.mjs'
+import book from '../models/book.mjs'
 
 // Показать список всех жанров.
-export function genreList(req, res) {
+export function genreList(req, res, next) {
     genre.find()
         .sort([['name', 'ascending']])
         .exec(function(err, genreList) {
@@ -12,8 +15,26 @@ export function genreList(req, res) {
 };
 
 // Показать подробную страницу для заданного жанра.
-export function genreDetail(req, res) {
-    res.send('Не реализовано: Страница подробностей для жанра: ' + req.params.id);
+export function genreDetail(req, res, next) {
+    async.parallel({
+        genre: function(callback) {
+            genre.findById(req.params.id)
+                .exec(callback)
+        },
+        genreBooks: function(callback) {
+            book.find({ 'genre': req.params.id })
+                .exec(callback)
+        }
+    }, function(err, results) {
+        if (err) { return next(err) }
+        if (results.genre === null) { // Результаты отсутствуют.
+            var err = new Error('Жанр не найден')
+            err.status = 404
+            return next(err)
+        }
+        // Успешное завершение, поэтому нужно отрисовать
+        res.render('genreDetail', { title: 'Подробности жанра', genre: results.genre, genreBooks: results.genreBooks })
+    })
 };
 
 // Показать форму создания жанра по запросу GET.
