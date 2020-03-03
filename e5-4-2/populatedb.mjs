@@ -120,13 +120,13 @@ function createGenreAuthors(cb) {
           authorCreate('Jim', 'Jones', '1971-12-16', false, callback);
         },
         function(callback) {
-          genreCreate("Fantasy", callback);
+          genreCreate("Фэнтези", callback);
         },
         function(callback) {
-          genreCreate("Science Fiction", callback);
+          genreCreate("Фантастика", callback);
         },
         function(callback) {
-          genreCreate("French Poetry", callback);
+          genreCreate("Французская поэзия", callback);
         },
         ],
         // optional callback

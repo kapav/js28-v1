@@ -1,9 +1,9 @@
+import async from 'async'
+
 import book from '../models/book.mjs'
 import author from '../models/author.mjs'
 import genre from '../models/genre.mjs'
 import bookinstance from '../models/bookinstance.mjs'
-
-import async from 'async'
 
 // Страница приветствия.
 export function index(req, res) {
@@ -41,8 +41,28 @@ export function bookList(req, res, next) {
 };
 
 // Показать подробную страницу для заданной книги.
-export function bookDetail(req, res) {
-    res.send('Не реализовано: Страница подробностей для книги: ' + req.params.id);
+export function bookDetail(req, res, next) {
+    async.parallel({
+        book: function(callback) {
+            book.findById(req.params.id)
+                .populate({path: 'author'})
+                .populate({path: 'genre'})
+                .exec(callback)
+        },
+        bookinstance: function(callback) {
+            bookinstance.find({ 'book': req.params.id })
+                .exec(callback)
+        }
+    }, function(err, results) {
+        if (err) { return next(err) }
+        if (results.book === null) { // Результаты отсутствуют.
+            var err = new Error('Книга не найдена')
+            err.status = 404
+            return next(err)
+        }
+        // Успешное завершение, поэтому нужно отрисовать
+        res.render('bookDetail', { title: results.book.title, book: results.book, bookinstances: results.bookinstance })
+    })
 };
 
 // Показать форму создания книги по запросу GET.
