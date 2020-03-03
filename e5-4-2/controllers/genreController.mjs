@@ -2,7 +2,13 @@ import genre from '../models/genre.mjs'
 
 // Показать список всех жанров.
 export function genreList(req, res) {
-    res.send('Не реализовано: Список жанров');
+    genre.find()
+        .sort([['name', 'ascending']])
+        .exec(function(err, genreList) {
+            if (err) { return next(err) }
+            // Успешное завершение, поэтому нужно отрисовать
+            res.render('genreList', { title: 'Список жанров', genreList })
+        })
 };
 
 // Показать подробную страницу для заданного жанра.

@@ -1,4 +1,7 @@
 import mongoose from 'mongoose'
+import moment from 'moment'
+
+moment.locale('ru') // Переключение на русский язык
 
 const Schema = mongoose.Schema
 
@@ -21,6 +24,22 @@ AuthorSchema
   .virtual('url')
   .get(function() {
     return '/catalog/author/' + this._id
+  })
+
+// Виртуальное свойство - отформатированная дата рождения
+AuthorSchema
+  .virtual('dateOfBirthFormatted')
+  .get(function() {
+    return this.dateOfBirth ?
+      moment(this.dateOfBirth).format('Do MMMM YYYY') : ''
+  })
+
+// Виртуальное свойство - отформатированная дата смерти
+AuthorSchema
+  .virtual('dateOfDeathFormatted')
+  .get(function() {
+    return this.dateOfDeath ?
+      moment(this.dateOfDeath).format('Do MMMM YYYY') : ''
   })
 
 // Экспортирование модели

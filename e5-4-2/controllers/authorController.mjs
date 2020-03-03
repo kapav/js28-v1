@@ -1,8 +1,14 @@
 import author from '../models/author.mjs'
 
 // Показать список всех авторов.
-export function authorList(req, res) {
-    res.send('Не реализовано: Список авторов');
+export function authorList(req, res, next) {
+    author.find()
+        .sort([['familyName', 'ascending']])
+        .exec(function(err, authorList) {
+            if (err) { return next(err) }
+            // Успешное завершение, поэтому нужно отрисовать
+            res.render('authorList', { title: 'Список авторов', authorList })
+        })
 };
 
 // Показать подробную страницу для заданного автора.
