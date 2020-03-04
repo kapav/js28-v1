@@ -3,7 +3,7 @@ import bookinstance from '../models/bookinstance.mjs'
 // Показать список всех экземпляров книг.
 export function bookinstanceList(req, res, next) {
     bookinstance.find()
-        .populate('book')
+        .populate({path: 'book'})
         .exec(function(err, bookinstanceList) {
             if (err) { return next(err) }
             // Успешное завершение, поэтому нужно отрисовать
@@ -13,7 +13,18 @@ export function bookinstanceList(req, res, next) {
 
 // Показать подробную страницу для заданного экземпляра книги.
 export function bookinstanceDetail(req, res) {
-    res.send('Не реализовано: Страница подробностей для экземпляра книги: ' + req.params.id);
+    bookinstance.findById(req.params.id)
+        .populate({path: 'book'})
+        .exec(function(err, bookinstance) {
+            if (err) { return next(err) }
+            if (bookinstance === null) { // Результаты отсутствуют.
+                const err = new Error('Экземпляр книги не найден')
+                err.status = 404
+                return next(err)
+            }
+            // Успешное завершение, поэтому нужно отрисовать
+            res.render('bookinstanceDetail', { title: 'Экземпляр книги: ' + bookinstance.book.title, bookinstance })
+        })
 };
 
 // Показать форму создания экземпляра книги по запросу GET.

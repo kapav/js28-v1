@@ -42,5 +42,12 @@ AuthorSchema
       moment(this.dateOfDeath).format('Do MMMM YYYY') : ''
   })
 
+// Виртуальное свойство - с датами рождения и смерти
+AuthorSchema
+  .virtual('lifeSpan')
+  .get(function() {
+    return this.dateOfBirthFormatted + ' - ' + this.dateOfDeathFormatted
+  })
+
 // Экспортирование модели
 export default mongoose.model('Author', AuthorSchema)
