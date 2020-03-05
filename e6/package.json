@@ -1,0 +1,27 @@
+{
+  "name": "js28-v1-e6",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node --experimental-modules ./bin/www.mjs",
+    "devstart": "nodemon --experimental-modules ./bin/www.mjs",
+    "debug": "set DEBUG=e6:* & npm start",
+    "devdebug": "set DEBUG=e6:* & npm run devstart"
+  },
+  "dependencies": {
+    "async": "^3.2.0",
+    "cookie-parser": "~1.4.4",
+    "debug": "~2.6.9",
+    "express": "~4.17.1",
+    "express-validator": "^6.4.0",
+    "http-errors": "~1.7.3",
+    "moment": "^2.24.0",
+    "mongoose": "^5.9.3",
+    "morgan": "~1.9.1",
+    "pug": "^2.0.4",
+    "serve-favicon": "^2.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}
