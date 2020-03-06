@@ -39,14 +39,14 @@ export function genreDetail(req, res, next) {
 };
 
 // Показать форму создания жанра по запросу GET.
-export function genreCreateGet(req, res, next) {
+export function genreCreateGet(req, res) {
     res.render('genreForm', { title: 'Добавить жанр' })
 };
 
 // Создать жанр по запросу POST.
 export const genreCreatePost = [
     // Проверить, что контрол name не пустой.
-    validator.body('name', 'Название жанра должно быть заполнено').trim().isLength({ min: 1 }),
+    validator.body('name', 'Название жанра должно быть заполнено.').trim().isLength({ min: 1 }),
 
     // Очистить (заэкранировать) контрол name.
     validator.body('name').escape(),
