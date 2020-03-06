@@ -33,7 +33,6 @@ export function authorDetail(req, res, next) {
             err.status = 404
             return next(err)
         }
-        console.log('authorDetail results:', results)
         // Успешное завершение, поэтому нужно отрисовать
         res.render('authorDetail', { title: 'Информация об авторе', author: results.author, authorBooks: results.authorBooks })
     })

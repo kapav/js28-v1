@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  h1= title
+
+  form(method='POST' action='')
+    div.form-group
+      label(for='title') Название:
+      input#title.form-control(type='text', placeholder='Название книги' name='title' required='true' value=(book === undefined ? '' : book.title))
+    div.form-group
+      label(for='author') Автор:
+      select#author.form-control(type='select', placeholder='Выберите автора' name='author' required='true')
+        - authors.sort(function(a, b) {let textA = a.familyName.toUpperCase(); let textB = b.familyName.toUpperCase(); return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;});
+        for author in authors
+          if book
+            option(value = author._id selected=(author._id.toString() === book.author ? 'selected' : false)) #{author.name}

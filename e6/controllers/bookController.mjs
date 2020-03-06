@@ -1,4 +1,5 @@
 import async from 'async'
+import validator from 'express-validator'
 
 import book from '../models/book.mjs'
 import author from '../models/author.mjs'
@@ -66,14 +67,96 @@ export function bookDetail(req, res, next) {
 };
 
 // Показать форму создания книги по запросу GET.
-export function bookCreateGet(req, res) {
-    res.send('Не реализовано: Добавление книги по запросу GET');
+export function bookCreateGet(req, res, next) {
+    // Запросить авторов, один из которых написал книгу, и жанры, к одному из которых относится книга, которая добавляется.
+    async.parallel({
+        authors: function(callback) {
+            author.find(callback)
+        },
+        genres: function(callback) {
+            genre.find(callback)
+        }
+    }, function(err, results) {
+        if (err) { return next(err) }
+        res.render('bookForm', { title: 'Добавить книгу', authors: results.author, genres: results.genres })
+    })
 };
 
 // Создать книгу по запросу POST.
-export function bookCreatePost(req, res) {
-    res.send('Не реализовано: Добавление книги по запросу POST');
-};
+export const bookCreatePost = [
+    // Преобразовать единичный жанр в массив из одного элемента.
+    (req, res, next) => {
+        if (!(req.body.genre instanceof Array)) {
+            if (typeof req.body.genre === 'undefined')
+                req.body.genre = []
+            else
+                req.body.genre = new Array(req.body.genre)
+        }
+        next()
+    },
+
+    // Проверить контролы.
+    validator.body('title', 'Название книги должно быть заполнено.').trim().isLength({ min: 1 }),
+    validator.body('author', 'Автор должен быть указан.').trim().isLength({ min: 1 }),
+    validator.body('summary', 'Краткое содержание должно быть приведено.').trim().isLength({ min: 1 }),
+
+    // Очистить контролы с помощью символов подстановки.
+    validator.body('*').escape(),
+
+    // Выполнить запрос после проверки и очистки.
+    (req, res, next) => {
+        // Извлечь ошибки проверки из запроса.
+        const errors = validationResult(req)
+
+        // Добавить объект книги с заэкранированными данными, у которых также отсечены начальные и хвостовые пробелы.
+        const currentBook = new book(
+            {
+                title: req.body.title,
+                author: req.body.author,
+                summary: req.body.summary,
+                isbn: req.body.isbn,
+                genre: req.body.genre
+            })
+
+        if (!errors.isEmpty()) {
+            // Ошибки существуют. Отрисовать форму повторно с очищенными значениями и сообщениями об ошибке.
+            // Запросить авторов, один из которых написал книгу, и жанры, к одному из которых относится книга, для отображения формы.
+            async.parallel({
+                authors: function(callback) {
+                    author.find(callback)
+                },
+                genres: function(callback) {
+                    genre.find(callback)
+                }
+            }, function(err, results) {
+                if (err) { return next(err) }
+                // Выделить выбранные жанры как помеченные.
+                for (let i = 0; i < results.genres.length; i++) {
+                    if (currentBook.genre.indexOf(results.genres[i]._id) > -1) {
+                        results.genres[i].checked = 'true'
+                    }
+                }
+                console.log('bookCreatePost results:', results)
+                res.render('bookForm', {
+                    title: 'Добавить книгу',
+                    authors: results.authors,
+                    genres: results.genres,
+                    book: currentBook,
+                    errors: errors.array()
+                })
+            })
+            return
+        }
+        else {
+            // Данные из формы верны. Сохранить книгу.
+            currentBook.save(function(err) {
+                if (err) { return next(err) }
+                // Книга сохранена - перенаправить на страницу с информацией о ней.
+                res.redirect(book.url)
+            })
+        }
+    }
+];
 
 // Показать форму удаления книги по запросу GET.
 export function bookDeleteGet(req, res) {
