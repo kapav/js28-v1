@@ -46,8 +46,8 @@ export function bookDetail(req, res, next) {
     async.parallel({
         book: function(callback) {
             book.findById(req.params.id)
-                .populate({path: 'author'})
-                .populate({path: 'genre'})
+                .populate('author')
+                .populate('genre')
                 .exec(callback)
         },
         bookinstance: function(callback) {
@@ -78,7 +78,7 @@ export function bookCreateGet(req, res, next) {
         }
     }, function(err, results) {
         if (err) { return next(err) }
-        res.render('bookForm', { title: 'Добавить книгу', authors: results.author, genres: results.genres })
+        res.render('bookForm', { title: 'Добавить книгу', authors: results.authors, genres: results.genres })
     })
 };
 
@@ -99,14 +99,18 @@ export const bookCreatePost = [
     validator.body('title', 'Название книги должно быть заполнено.').trim().isLength({ min: 1 }),
     validator.body('author', 'Автор должен быть указан.').trim().isLength({ min: 1 }),
     validator.body('summary', 'Краткое содержание должно быть приведено.').trim().isLength({ min: 1 }),
+    validator.body('isbn', 'ISBN должен быть заполнен.').trim().isLength({ min: 1 }),
 
     // Очистить контролы с помощью символов подстановки.
-    validator.body('*').escape(),
+    validator.body('title').escape(),
+    validator.body('author').escape(),
+    validator.body('summary').escape(),
+    validator.body('isbn').escape(),
 
     // Выполнить запрос после проверки и очистки.
     (req, res, next) => {
         // Извлечь ошибки проверки из запроса.
-        const errors = validationResult(req)
+        const errors = validator.validationResult(req)
 
         // Добавить объект книги с заэкранированными данными, у которых также отсечены начальные и хвостовые пробелы.
         const currentBook = new book(
@@ -136,7 +140,6 @@ export const bookCreatePost = [
                         results.genres[i].checked = 'true'
                     }
                 }
-                console.log('bookCreatePost results:', results)
                 res.render('bookForm', {
                     title: 'Добавить книгу',
                     authors: results.authors,
@@ -152,7 +155,7 @@ export const bookCreatePost = [
             currentBook.save(function(err) {
                 if (err) { return next(err) }
                 // Книга сохранена - перенаправить на страницу с информацией о ней.
-                res.redirect(book.url)
+                res.redirect(currentBook.url)
             })
         }
     }
