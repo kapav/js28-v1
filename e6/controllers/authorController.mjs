@@ -94,13 +94,50 @@ export const authorCreatePost = [
 ];
 
 // Показать форму удаления автора по запросу GET.
-export function authorDeleteGet(req, res) {
-    res.send('Не реализовано: Удаление автора по запросу GET');
+export function authorDeleteGet(req, res, next) {
+    async.parallel({
+        author: function(callback) {
+            author.findById(req.params.id).exec(callback)
+        },
+        authorBooks: function(callback) {
+            book.find({ 'author': req.params.id }).exec(callback)
+        }
+    }, function(err, results) {
+        if (err) { return next(err) }
+        if (results.author === null) { // Результаты отсутствуют.
+            res.redirect('/catalog/authors')
+        }
+        // Успешное завершение, поэтому нужно отрисовать
+        res.render('authorDelete', { title: 'Удаление автора', author: results.author, authorBooks: results.authorBooks })
+    })
 };
 
 // Удалить автора по запросу POST.
-export function authorDeletePost(req, res) {
-    res.send('Не реализовано: Удаление автора по запросу POST');
+export function authorDeletePost(req, res, next) {
+    async.parallel({
+        author: function(callback) {
+            author.findById(req.body.authorid).exec(callback)
+        },
+        authorBooks: function(callback) {
+            book.find({ 'author': req.body.authorid }).exec(callback)
+        }
+    }, function(err, results) {
+        if (err) { return next(err) }
+        // Успешное завершение
+        if (results.authorBooks.length > 0) {
+            // В библиотеке одна или более книг автора. Визуализации выполняется так же, как и по запросу GET.
+            res.render('authorDelete', { title: 'Удаление автора', author: results.author, authorBooks: results.authorBooks })
+            return
+        }
+        else {
+            // У автора нет никаких книг. Удалить объект автора и перенаправить в список авторов.
+            author.findByIdAndRemove(req.body.authorid, function deleteAuthor(err) {
+                if (err) { return next(err) }
+                // Успешное завершение. Перейти к списку авторов.
+                res.redirect('/catalog/authors')
+            })
+        }
+    })
 };
 
 // Показать форму обновления автора по запросу GET.
