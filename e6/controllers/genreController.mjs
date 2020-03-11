@@ -89,13 +89,49 @@ export const genreCreatePost = [
 ]
 
 // Показать форму удаления жанра по запросу GET.
-export function genreDeleteGet(req, res) {
-    res.send('Не реализовано: Удаление жанра по запросу GET');
+export function genreDeleteGet(req, res, next) {
+    async.parallel({
+        genre: function(callback) {
+            genre.findById(req.params.id).exec(callback)
+        },
+        genreBooks: function(callback) {
+            book.find({ 'genre': req.params.id }).exec(callback)
+        }
+    }, function(err, results) {
+        if (err) { return next(err) }
+        if (results.genre === null) { // Результаты отсутствуют.
+            res.redirect('/catalog/genres')
+        }
+        // Успешное завершение, поэтому нужно отрисовать
+        res.render('genreDelete', { title: 'Удаление жанра', genre: results.genre, genreBooks: results.genreBooks })
+    })
 };
 
 // Удалить жанр по запросу POST.
-export function genreDeletePost(req, res) {
-    res.send('Не реализовано: Удаление жанра по запросу POST');
+export function genreDeletePost(req, res, next) {
+    async.parallel({
+        genre: function(callback) {
+            genre.findById(req.body.genreid).exec(callback)
+        },
+        genreBooks: function(callback) {
+            book.find({ 'genre': req.body.genreid }).exec(callback)
+        }
+    }, function(err, results) {
+        if (err) { return next(err) }
+        // Успешное завершение
+        if (results.genreBooks.length > 0) {
+            // В библиотеке одна или более книг жанра. Визуализация выполняется так же, как и по запросу GET.
+            res.render('genreDelete', { title: 'Удаление жанра', genre: results.genre, genreBooks: results.genreBooks })
+        }
+        else {
+            // Нет никаких книг данного жанра. Удалить объект жанра и перенаправить в список жанров.
+            genre.findByIdAndRemove(req.body.genreid, function deleteGenre(err) {
+                if (err) { return next(err) }
+                // Успешное завершение. Перейти к списку жанров.
+                res.redirect('/catalog/authors')
+            })
+        }
+    })
 };
 
 // Показать форму обновления жанра по запросу GET.

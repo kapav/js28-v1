@@ -125,7 +125,7 @@ export function authorDeletePost(req, res, next) {
         if (err) { return next(err) }
         // Успешное завершение
         if (results.authorBooks.length > 0) {
-            // В библиотеке одна или более книг автора. Визуализации выполняется так же, как и по запросу GET.
+            // В библиотеке одна или более книг автора. Визуализация выполняется так же, как и по запросу GET.
             res.render('authorDelete', { title: 'Удаление автора', author: results.author, authorBooks: results.authorBooks })
             return
         }
