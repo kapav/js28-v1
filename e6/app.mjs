@@ -6,7 +6,6 @@ import logger from 'morgan';
 import cookieParser from 'cookie-parser';
 // Импортировать модуль mongoose
 import mongoose from 'mongoose';
-import validator from 'express-validator'
 
 import indexRouter from './routes/index.mjs';
 import usersRouter from './routes/users.mjs';
