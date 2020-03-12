@@ -162,13 +162,50 @@ export const bookCreatePost = [
 ];
 
 // Показать форму удаления книги по запросу GET.
-export function bookDeleteGet(req, res) {
-    res.send('Не реализовано: Удаление книги по запросу GET');
+export function bookDeleteGet(req, res, next) {
+    async.parallel({
+        book: function(callback) {
+            book.findById(req.params.id).exec(callback)
+        },
+        bookBookinstances: function(callback) {
+            bookinstance.find({ 'book': req.params.id }).exec(callback)
+        }
+    }, function(err, results) {
+        if (err) { return next(err) }
+        if (results.book === null) { // Результаты отсутствуют.
+            res.redirect('/catalog/books')
+        }
+        // Успешное завершение, поэтому нужно отрисовать
+        res.render('bookDelete', { title: 'Удаление книги', book: results.book, bookBookinstances: results.bookBookinstances })
+    })
 };
 
 // Удалить книгу по запросу POST.
-export function bookDeletePost(req, res) {
-    res.send('Не реализовано: Удаление книги по запросу POST');
+export function bookDeletePost(req, res, next) {
+    async.parallel({
+        book: function(callback) {
+            book.findById(req.body.bookid).exec(callback)
+        },
+        bookBookinstances: function(callback) {
+            bookinstance.find({ 'book': req.body.bookid }).exec(callback)
+        }
+    }, function(err, results) {
+        if (err) { return next(err) }
+        // Успешное завершение
+        if (results.bookBookinstances.length > 0) {
+            // В библиотеке один или более экземпляров данной книги. Визуализация выполняется так же, как и по запросу GET.
+            res.render('bookDelete', { title: 'Удаление книги', book: results.book, bookBookinstances: results.bookBookinstances })
+            return
+        }
+        else {
+            // Для данной книги нет никаких экземпляров книги. Удалить объект книги и перенаправить в список книг.
+            book.findByIdAndRemove(req.body.bookid, function deleteBook(err) {
+                if (err) { return next(err) }
+                // Успешное завершение. Перейти к списку книг.
+                res.redirect('/catalog/books')
+            })
+        }
+    })
 };
 
 // Показать форму обновления книги по запросу GET.

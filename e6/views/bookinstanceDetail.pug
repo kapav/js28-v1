@@ -5,7 +5,7 @@ block content
 
   p #[strong Название:] #{' '}
     a(href=bookinstance.book.url) #{bookinstance.book.title}
-  p #[stong Выходные данные:] #{bookinstance.imprint}
+  p #[strong Выходные данные:] #{bookinstance.imprint}
   p #[strong Состояние:] #{' '}
     if bookinstance.status === 'Доступен'
       span.text-success #{bookinstance.status}
