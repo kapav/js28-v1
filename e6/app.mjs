@@ -16,7 +16,7 @@ const app = express();
 
 // Задание подключения к базе данных по умолчанию
 const mongoDB = 'mongodb://localhost:27017/my_database';
-mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(mongoDB, { useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false });
 // Предоставление mongoos'у возможности использовать глобальную библиотеку промисов
 mongoose.Promise = global.Promise;
 // Получение подключения по умолчанию

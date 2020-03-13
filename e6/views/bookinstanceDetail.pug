@@ -15,3 +15,7 @@ block content
       span.text-warning #{bookinstance.status}
   if bookinstance.status !== 'Доступен'
     p #[strong Срок возврата:] #{bookinstance.dueBackFormatted}
+
+  hr
+  p
+    a(href=bookinstance.url + '/delete') Удалить экземпляр книги

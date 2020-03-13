@@ -64,7 +64,7 @@ export const bookinstanceCreatePost = [
                 book: req.body.book,
                 imprint: req.body.imprint,
                 status: req.body.status,
-                dueBack: req.body.dueback
+                dueBack: req.body.dueBack
             })
 
         if (!errors.isEmpty()) {
@@ -94,13 +94,26 @@ export const bookinstanceCreatePost = [
 ];
 
 // Показать форму удаления экземпляра книги по запросу GET.
-export function bookinstanceDeleteGet(req, res) {
-    res.send('Не реализовано: Удаление экземпляра книги по запросу GET');
+export function bookinstanceDeleteGet(req, res, next) {
+    bookinstance.findById(req.params.id)
+        .populate('book')
+        .exec(function(err, bookinstance) {
+            if (err) { return next(err) }
+            if (bookinstance === null) { // Результаты отсутствуют.
+                res.redirect('/catalog/bookinstances')
+            }
+            // Успешное завершение, поэтому нужно отрисовать
+            res.render('bookinstanceDelete', { title: 'Удаление экземпляра книги', bookinstance })
+        })
 };
 
 // Удалить экземпляр книги по запросу POST.
-export function bookinstanceDeletePost(req, res) {
-    res.send('Не реализовано: Удаление экземпляра книги по запросу POST');
+export function bookinstanceDeletePost(req, res, next) {
+    bookinstance.findByIdAndRemove(req.body.bookinstanceid, function(err) {
+        if (err) { return next(err) }
+        // Успешное завершение. Перейти к списку экземпляров книги.
+        res.redirect('/catalog/bookinstances')
+    })
 };
 
 // Показать форму обновления экземпляра книги по запросу GET.
