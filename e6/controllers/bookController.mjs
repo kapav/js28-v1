@@ -209,11 +209,111 @@ export function bookDeletePost(req, res, next) {
 };
 
 // Показать форму обновления книги по запросу GET.
-export function bookUpdateGet(req, res) {
-    res.send('Не реализовано: Обновление книги по запросу GET');
+export function bookUpdateGet(req, res, next) {
+    // Запросить книгу, авторов и жанры для размещения в форме.
+    async.parallel({
+        book: function(callback) {
+            book.findById(req.params.id).populate('author').populate('genre').exec(callback)
+        },
+        authors: function(callback) {
+            author.find(callback)
+        },
+        genres: function(callback) {
+            genre.find(callback)
+        }
+    }, function(err, results) {
+        if (err) { return next(err) }
+        if (results.book === null) { // Результаты отсутствуют.
+            const err = new Error('Книга не найдена')
+            err.status = 404
+            return next(err)
+        }
+        // Успешное завершение. Выделить выбранные жанры как помеченные.
+        for (let allGIter = 0; allGIter < results.genres.length; allGIter++) {
+            for (let bookGIter = 0; bookGIter < results.book.genre.length; bookGIter++) {
+                if (results.genres[allGIter]._id.toString() === results.book.genre[bookGIter]._id.toString()) {
+                    results.genres[allGIter].checked = 'true'
+                }
+            }
+        }
+        res.render('bookForm', { title: 'Обновить книгу', authors: results.authors, genres: results.genres, book: results.book })
+    })
 };
 
 // Обновить книгу по запросу POST.
-export function bookUpdatePost(req, res) {
-    res.send('Не реализовано: Обновление книги по запросу POST');
-};
+export const bookUpdatePost = [
+    // Преобразовать единичный жанр в массив из одного элемента, не указанный жанр - в пустой массив.
+    (req, res, next) => {
+        if (!(req.body.genre instanceof Array)) {
+            if (typeof req.body.genre === 'undefined') {
+                req.body.genre = []
+            }
+            else {
+                req.body.genre = new Array(req.body.genre)
+            }
+        }
+        next()
+    },
+
+    // Проверить контролы.
+    validator.body('title', 'Название книги должно быть заполнено.').trim().isLength({ min: 1 }),
+    validator.body('author', 'Автор должен быть указан.').trim().isLength({ min: 1 }),
+    validator.body('summary', 'Краткое содержание должно быть приведено.').trim().isLength({ min: 1 }),
+    validator.body('isbn', 'ISBN должен быть заполнен.').trim().isLength({ min: 1 }),
+
+    // Очистить контролы с помощью символов подстановки.
+    validator.body('title').trim().escape(),
+    validator.body('author').trim().escape(),
+    validator.body('summary').trim().escape(),
+    validator.body('isbn').trim().escape(),
+    validator.body('genre.*').trim().escape(),
+
+    // Выполнить запрос после проверки и очистки.
+    (req, res, next) => {
+        // Извлечь ошибки проверки из запроса.
+        const errors = validator.validationResult(req)
+
+        // Добавить объект книги со старым идентификатором, с заэкранированными данными, у которых также отсечены начальные и хвостовые пробелы.
+        const currentBook = new book(
+            {
+                title: req.body.title,
+                author: req.body.author,
+                summary: req.body.summary,
+                isbn: req.body.isbn,
+                genre: (typeof req.body.genre === 'undefined') ? [] : req.body.genre,
+                _id: req.params.id //
+            })
+
+        if (!errors.isEmpty()) {
+        // Ошибки существуют. Отрисовать форму повторно с очищенными значениями и сообщениями об ошибке.
+            // Запросить авторов, один из которых написал книгу, и жанры, к одному из которых относится книга, для отображения формы.
+            async.parallel({
+                authors: function(callback) {
+                    author.find(callback)
+                },
+                genres: function(callback) {
+                    genre.find(callback)
+                }
+            }, function(err, results) {
+                if (err) { return next(err) }
+
+                // Выделить выбранные жанры как помеченные.
+                for (let i = 0; i < results.genres.length; i++) {
+                    if (currentBook.genre.indexOf(results.genres[i]._id) > -1) {
+                        results.genres[i].checked = 'true'
+                    }
+                }
+                res.render('bookForm', { title: 'Обновить книгу', authors: results.authors, genres: results.genres, book: currentBook, errors: errors.array() })
+            })
+            return
+        }
+        else {
+            // Данные из формы верны. Обновить книгу.
+            book.findByIdAndUpdate(req.params.id, currentBook, {}, function(err, specifiedBook) {
+                if (err) { return next(err) }
+                // Книга обновлена - перенаправить на страницу с информацией о ней.
+                res.redirect(specifiedBook.url)
+            })
+        }
+    }
+];
