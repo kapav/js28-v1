@@ -11,10 +11,10 @@ block content
       input#familyName.form-control(type='text' placeholder='Фамилия' name='familyName' required='true' value=(author === undefined ? '' : author.familyName))
     div.form-group
       label(for='dateOfBirth') Дата рождения:
-      input#dateOfBirth.form-control(type='date' name='dateOfBirth' value=(author === undefined ? '' : author.dateOfBirth))
+      input#dateOfBirth.form-control(type='date' name='dateOfBirth' value=(author === undefined ? '' : (new Date(author.dateOfBirth)).toISOString().substr(0, 10)))
     div.form-group
       label(for='dateOfDeath') Дата смерти:
-      input#dateOfDeath.form-control(type='date' name='dateOfDeath' value=(author === undefined ? '' : author.dateOfDeath))
+      input#dateOfDeath.form-control(type='date' name='dateOfDeath' value=(author === undefined ? '' : (new Date(author.dateOfDeath)).toISOString().substr(0, 10)))
     button.btn.btn-primary(type='submit') Отправить
   if errors
     ul

@@ -141,11 +141,69 @@ export function authorDeletePost(req, res, next) {
 };
 
 // Показать форму обновления автора по запросу GET.
-export function authorUpdateGet(req, res) {
-    res.send('Не реализовано: Обновление автора по запросу GET');
+export function authorUpdateGet(req, res, next) {
+    // Запросить автора для размещения в форме.
+    author.findById(req.params.id, function(err, author) {
+        if (err) { return next(err) }
+        if (author === null) { // Результаты отсутствуют.
+            const err = new Error('Автор не найден')
+            err.status = 404
+            return next(err)
+        }
+
+        // Успешное завершение, поэтому нужно отрисовать
+        res.render('authorForm', { title: 'Обновить автора', author })
+    })
 };
 
 // Обновить автора по запросу POST.
-export function authorUpdatePost(req, res) {
-    res.send('Не реализовано: Обновление автора по запросу POST');
-};
+export const authorUpdatePost = [
+    // Проверить контролы.
+    validator.body('firstName').isLength({ min: 1 }).trim()
+        .withMessage('Поле имени должно быть зааполнено.')
+        .isAlphanumeric('ru-RU')
+        .withMessage('Имя должно содержать только алфавитно-цифровые символы.'),
+    validator.body('familyName').isLength({ min: 1 }).trim()
+        .withMessage('Поле фамилии должно быть заполнено.')
+        .isAlphanumeric('ru-RU').withMessage('Фамилия должна содержать только алфавитно-цифровые символы.'),
+    validator.body('dateOfBirth', 'Неправильная дата рождения')
+        .optional({ checkFalsy: true }).isISO8601(),
+    validator.body('dateOfDeath', 'Неправильная дата смерти')
+        .optional({ checkFalsy: true }).isISO8601(),
+    
+    // Очистить контролы с помощью символов подстановки.
+    validator.body('firstName').escape(),
+    validator.body('familyName').escape(),
+    validator.body('dateOfBirth').toDate(),
+    validator.body('dateOfDeath').toDate(),
+
+    // Выполнить запрос после проверки и очистки.
+    (req, res, next) => {
+        // Извлечь ошибки проверки из запроса.
+        const errors = validator.validationResult(req)
+
+        // Добавить объект автора со старым идентификатором, с заэкранированными данными, у которых также отсечены начальные и хвостовые пробелы.
+        const currentAuthor = new author(
+            {
+                firstName: req.body.firstName,
+                familyName: req.body.familyName,
+                dateOfBirth: req.body.dateOfBirth,
+                dateOfDeath: req.body.dateOfDeath,
+                _id: req.params.id // Существующий идентификатор предотвращает создание нового.
+            })
+
+        if (!errors.isEmpty()) {
+            // Ошибки существуют. Отрисовать форму повторно с очищенными значениями и сообщениями об ошибке.
+            res.render('authorForm', { title: 'Обновить жанр', author: currentAuthor, errors: errors.array() })
+            return
+        }
+        else {
+            // Данные из формы верны. Обновить автора.
+            author.findByIdAndUpdate(req.params.id, currentAuthor, {}, function(err, author) {
+                if (err) { return next(err) }
+                // Автор обновлён - перенаправить на страницу с информацией о нём.
+                res.redirect(author.url)
+            })
+        }
+    }
+];
