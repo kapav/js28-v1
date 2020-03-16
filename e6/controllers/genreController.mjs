@@ -135,11 +135,52 @@ export function genreDeletePost(req, res, next) {
 };
 
 // Показать форму обновления жанра по запросу GET.
-export function genreUpdateGet(req, res) {
-    res.send('Не реализовано: Обновление жанра по запросу GET');
+export function genreUpdateGet(req, res, next) {
+    // Запросить жанр для размещения в форме.
+    genre.findById(req.params.id, function(err, genre) {
+        if (err) { return next(err) }
+        if (genre === null) { // Результаты отсутствуют.
+            const err = new Error('Жанр не найден')
+            err.status = 404
+            return next(err)
+        }
+        // Успешное завершение, поэтому нужно отрисовать
+        res.render('genreForm', { title: 'Обновить жанр', genre })
+    })
 };
 
 // Обновить жанр по запросу POST.
-export function genreUpdatePost(req, res) {
-    res.send('Не реализовано: Обновление жанра по запросу POST');
-};
+export const genreUpdatePost = [
+    // Проверить, что контрол name не пустой.
+    validator.body('name', 'Название жанра должно быть заполнено.').trim().isLength({ min: 1 }),
+
+    // Очистить (заэкранировать) контрол name.
+    validator.body('name').escape(),
+
+    // Выполнить запрос после проверки и очистки.
+    (req, res, next) => {
+        // Извлечь ошибки проверки из запроса.
+        const errors = validator.validationResult(req)
+
+        // Добавить объект жанра со старым идентификатором, с заэкранированными данными, у которых также отсечены начальные и хвостовые пробелы.
+        const currentGenre = new genre(
+            {
+                name: req.body.name,
+                _id: req.params.id // Существующий идентификатор предотвращает создание нового.
+            })
+
+        if (!errors.isEmpty()) {
+            // Ошибки существуют. Отрисовать форму повторно с очищенными значениями и сообщениями об ошибке.
+            res.render('genreForm', { title: 'Обновить жанр', genre: currentGenre, errors: errors.array() })
+            return
+        }
+        else {
+            // Данные из формы верны. Обновить жанр.
+            genre.findByIdAndUpdate(req.params.id, currentGenre, {}, function(err, genre) {
+                if (err) { return next(err) }
+                // Жанр обновлён - перенаправить на страницу с его подробностями.
+                res.redirect(genre.url)
+            })
+        }
+    }
+];

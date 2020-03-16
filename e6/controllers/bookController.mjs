@@ -281,7 +281,7 @@ export const bookUpdatePost = [
                 summary: req.body.summary,
                 isbn: req.body.isbn,
                 genre: (typeof req.body.genre === 'undefined') ? [] : req.body.genre,
-                _id: req.params.id //
+                _id: req.params.id // Существующий идентификатор предотвращает создание нового.
             })
 
         if (!errors.isEmpty()) {
@@ -303,16 +303,22 @@ export const bookUpdatePost = [
                         results.genres[i].checked = 'true'
                     }
                 }
-                res.render('bookForm', { title: 'Обновить книгу', authors: results.authors, genres: results.genres, book: currentBook, errors: errors.array() })
+                res.render('bookForm', {
+                    title: 'Обновить книгу',
+                    authors: results.authors,
+                    genres: results.genres,
+                    book: currentBook,
+                    errors: errors.array()
+                })
             })
             return
         }
         else {
             // Данные из формы верны. Обновить книгу.
-            book.findByIdAndUpdate(req.params.id, currentBook, {}, function(err, specifiedBook) {
+            book.findByIdAndUpdate(req.params.id, currentBook, {}, function(err, book) {
                 if (err) { return next(err) }
                 // Книга обновлена - перенаправить на страницу с информацией о ней.
-                res.redirect(specifiedBook.url)
+                res.redirect(book.url)
             })
         }
     }
