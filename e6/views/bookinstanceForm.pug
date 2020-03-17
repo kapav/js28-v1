@@ -19,7 +19,7 @@ block content
       input#imprint.form-control(type='text' placeholder='Дата публикации и информация об издателе' name='imprint' required='true' value=(bookinstance === undefined ? '' : bookinstance.imprint))
     div.form-group
       label(for='dueBack') Дата, с которой экземпляр книги доступен:
-      input#dueBack.form-control(type='date' name='dueBack' value=(bookinstance === undefined ? '' : bookinstance.dueBack))
+      input#dueBack.form-control(type='date' name='dueBack' value=(bookinstance === undefined ? '' : (new Date(bookinstance.dueBack)).toISOString().substr(0, 10)))
 
     div.form-group
       label(for='status') Состояние:
